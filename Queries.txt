@@ -1,0 +1,148 @@
+Q1 = 
+
+
+select authors.name, count(*) as num 
+from authors join articles
+on authors.id = articles.author
+
+create view PATH as 
+select (regexp_split_to_array(path, E'/article/'))[2] as Path_Required ;
+
+select (regexp_split_to_array(path, E'/article/'))[2] as Path_Required from log where path != '/' limit 10;
+
+select articles.title, count(*) as views 
+from articles join log
+on articles.slug = PATH 
+where path != '/' 
+group by PATH, articles.title
+order by views desc limit 3;
+
+//Answer 1
+select articles.title, count(*) as views
+from articles join log
+on articles.slug = (regexp_split_to_array(path, E'/article/'))[2] 
+where path != '/' 
+group by (regexp_split_to_array(path, E'/article/'))[2], articles.title
+order by views desc limit 3;
+
+var imp = "(regexp_split_to_array(path, E'/article/'))[2]";
+
+select articles.title, count(*) as views
+from articles join log
+on articles.slug = imp  
+where path != '/' 
+group by imp, articles.title
+order by views desc limit 3;
+
+"select articles.title, count(*) as views from articles join log on articles.slug = "+imp+" where path != '/' group by "+imp+", articles.title order by views desc limit 3;";
+
+//Answer
+Q2:First view ( Joins the authors and articles table on author.id and articles.author)
+
+create view NameSlug as
+select authors.name, articles.slug
+from authors join articles
+on authors.id = articles.author 
+
+select authors.name, count(*) as views
+from authors join First
+on authors.name = First.name
+join log
+on First.slug = (regexp_split_to_array(path, E'/article/'))[2]
+where path != '/'
+group by authors.name
+order by views desc;
+
+//Answer
+Q3
+
+create view totalViews as
+select to_char(time,'FMMonth FMDDth yyyy') as outputV,count(status) from log group by outputV;
+
+create view totalErrors as
+select to_char(time,'FMMonth FMDDth yyyy') as outputE,count(status) from log where status like '%404%' group by outputE;
+
+create view Answer as
+select totalErrors.outputE,cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as float) as Errorpercent from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
+
+select * from Answer where ErrorPercent > 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+select to_char(time,'FMMonth FMDDth yyyy'),status as output from ;
+
+create view totalViews as
+select to_char(time,'FMMonth FMDDth yyyy') as outputV,count(status) from log group by outputV;
+
+create view totalErrors as
+select to_char(time,'FMMonth FMDDth yyyy') as outputE,count(status) from log where status like '%404%' group by outputE;
+
+create view Answer as
+select totalErrors.outputE,cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as float) as Errorpercent from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
+
+select * from Answer where ErrorPercent > 1;
+
+create view totalViewsN as
+select time,count(status) from log group by time;
+
+create view totalErrorsN as
+select time,count(status) from log where status like '%404%' group by time;
+
+select cast(cast(te.count as float)/ cast(tv.count as float)*100 as float) as percent from tv join te on tv.outputV = te.output;
+
+create view te as
+select to_char(time,'dd') as output,count(status) from log where status like '%404%' group by output;
+create view tv as
+select to_char(time,'dd') as outputV,count(status) from log group by outputV;
+
+select cast(cast(te.count as float)/ cast(tv.count as float)*100 as float) as percent from tv join te on tv.outputV = te.output;
+
+select output,outputV,(te.count/tv.count) as er
+from te join tv
+on te.output = tv.outputV
+group by er;
+
+
+to_char(time,'FMMonth FMDDth yyyy') as output
+
+select totalErrorsN.time,totalViewsN.time,((totalErrorsN.count / totalViewsN.count)*100) as Requests
+from totalErrorsN join totalViewsN
+on totalErrorsN.time = totalViewsN.time
+group by totalErrorsN.time,totalViewsN.time,Requests;
+limit 5;
+
+select to_char(time,'FMMonth FMDDth yyyy') as output,(totalErrors.count / totalViews.count) as Requests 
+from log join totalErrors
+on time = totalErrors.outputE
+join totalViews
+on totalErrors.outputE = totalViews.outputV
+group by output;
+
+
+select to_char(time,'FMMonth FMDDth yyyy') as output,(totalErrors.count / totalViews.count) as Requests 
+from log join totalErrors
+on output = totalErrors.outputE
+join totalViews
+on totalErrors.outputE = totalViews.outputV
+group by output;
+
+
+select log.time ,((totalErrorsN.count / totalViewsN.count)*100) as Requests 
+from log join totalErrorsN
+on log.time = totalErrorsN.time
+join totalViewsN
+on totalErrorsN.time = totalViewsN.time
+group by log.time,Requests
+having Requests > 1;
+
+
