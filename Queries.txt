@@ -25,6 +25,36 @@ where path != '/'
 group by (regexp_split_to_array(path, E'/article/'))[2], articles.title
 order by views desc limit 3;
 
+//Review 1
+create view fr as 
+select path,
+count(*) as views
+from log
+where path != '/'
+group by path
+order by views desc limit 5;
+
+create view fr as select path, count(*) as views from log where path != '/' group by path order by views desc limit 5;
+
+select (regexp_split_to_array(path, E'/article/'))[2] as Title,views from fr ; 
+
+
+create view PathRequired as
+select (regexp_split_to_array(path, E'/article/'))[2] as path,
+count(*) as views
+from log
+group by (regexp_split_to_array(path, E'/article/'))[2]
+order by views desc limit 5;
+
+select PathRequired.path,
+count(*) as views
+from PathRequired
+where PathRequired.path != '/'
+group by PathRequired.path
+order by views desc limit 3;
+
+
+
 var imp = "(regexp_split_to_array(path, E'/article/'))[2]";
 
 select articles.title, count(*) as views
@@ -38,11 +68,13 @@ order by views desc limit 3;
 
 //Answer
 Q2:First view ( Joins the authors and articles table on author.id and articles.author)
+create view First as select authors.name, articles.slug from authors join articles on authors.id = articles.author;
 
 create view NameSlug as
 select authors.name, articles.slug
 from authors join articles
 on authors.id = articles.author 
+
 
 select authors.name, count(*) as views
 from authors join First
@@ -52,6 +84,44 @@ on First.slug = (regexp_split_to_array(path, E'/article/'))[2]
 where path != '/'
 group by authors.name
 order by views desc;
+
+select authors.name, count(*) as views from authors join First on authors.name =
+ First.name join log on First.slug = (regexp_split_to_array(path, E'/article/'))
+[2] where path != '/'group by authors.name order by views desc;
+
+
+//r2
+create view totalViews as
+select date(time) as outputV,count(status) from log group by outputV;
+
+
+select authors.name, count(*) as views
+from authors join First
+on authors.name = First.name
+join log
+on First.slug = (regexp_split_to_array(path, E'/article/'))[2]
+where path != '/'
+group by authors.name
+order by views desc;
+
+
+
+
+//Q2  Final
+
+create view totalViews as
+select to_char(time,'FMMonth FMDDth yyyy') as outputV,count(status) from log group by outputV;
+
+create view totalErrors as
+select to_char(time,'FMMonth FMDDth yyyy') as outputE,count(status) from log where status like '%404%' group by outputE;
+
+create view percent as
+select totalErrors.outputE,round(cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as numeric),2) from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
+
+select * from percent where round > 1;
+
+
+
 
 //Answer
 Q3
@@ -63,14 +133,19 @@ create view totalErrors as
 select to_char(time,'FMMonth FMDDth yyyy') as outputE,count(status) from log where status like '%404%' group by outputE;
 
 create view Answer as
-select totalErrors.outputE,cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as float) as Errorpercent from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
+select totalErrors.outputE,round(cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as numeric),2) from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
 
-select * from Answer where ErrorPercent > 1;
+create view percent as
+select totalErrors.outputE,round(cast(cast(totalErrors.count as float)/ cast(totalViews.count as float)*100 as numeric),2) from totalViews join totalErrors on totalViews.outputV = totalErrors.outputE;
+
+select * from percent where round > 1;
+
+select outputE,round( CAST(float Errorpercent as numeric), 2)  where ErrorPercent > 1;
+
+SELECT outputE,convert(decimal(10, 2), ); FROM Answer where ErrorPercent > 1;
 
 
-
-
-
+CAST(float8 '3.1415927' as numeric), 2
 
 
 
